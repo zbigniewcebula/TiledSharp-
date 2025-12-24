@@ -9,7 +9,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Remoting.Messaging;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -137,7 +136,7 @@ namespace TiledSharp
                 
                 if(p.Attribute("value") != null)
                 {
-                    ptype = p.Attribute("value").Value;
+					pval = p.Attribute("value").Value;
                 }
 
                 Add(pname, new(ptype, pval));
@@ -146,16 +145,80 @@ namespace TiledSharp
 
         public class TypeValueEntry
         {
+			private static readonly char[] POINTS_SEPARATOR = new char[] {','};
+			private static readonly char[] COORDS_SEPARATOR = new char[] {' '};
+			
             public readonly string Type;
             public readonly string Value;
             
-            public TypeValueEntry(string type, string value)
-            {
-                Type = type;
-                Value = value;
-            }
+			public TypeValueEntry(string type, string value)
+			{
+				Type  = type;
+				Value = value;
+			}
+			public TypeValueEntry(string type, Collection<TmxObjectPoint> points)
+			{
+				Type  = type;
+				Value = string.Join(" ", points.Select(p => $"{p.X},{p.Y}"));
+			}
+			public TypeValueEntry(string type, TmxObjectPoint point)
+			{
+				Type  = type;
+				Value = string.Join(" ", $"{point.X},{point.Y}");
+			}
             
             public override string ToString() => Value;
+			
+			public bool ReadBool()
+			{ 
+				return Value is "true" or "1"
+					? true : false;
+			}
+			
+			public int ReadInteger()
+			{
+				if(int.TryParse(Value, out var result))
+				{
+					return result;
+				}
+
+				return 0;
+			}
+			
+			public float ReadFloat()
+			{
+				if(float.TryParse(Value, out var result))
+				{
+					return result;
+				}
+
+				return 0;
+			}
+			
+			public int[] ReadColor()
+			{
+				return new int[3] {
+					int.Parse(Value.Substring(1, 2), NumberStyles.HexNumber),
+					int.Parse(Value.Substring(3, 2), NumberStyles.HexNumber),
+					int.Parse(Value.Substring(5, 2), NumberStyles.HexNumber)	
+				};
+			}
+
+			public (int x, int y) ReadPoint()
+			{
+				var components = Value.Split(POINTS_SEPARATOR, 2);
+				return (int.Parse(components[0]), int.Parse(components[1]));
+			}
+
+			public (int x, int y)[] ReadPoints()
+			{
+				return Value
+					.Split(COORDS_SEPARATOR)
+					.Select(p => {
+						var components = p.Split(POINTS_SEPARATOR, 2);
+						return (int.Parse(components[0]), int.Parse(components[1]));
+					}).ToArray();
+			}
         }
     }
 

@@ -109,6 +109,23 @@ namespace TiledSharp
 					tiles[tile.Id] = tile;
                 }
 
+				if(tiles.Count == 0)
+				{
+					for(int i = 0; i < TileCount; ++i)
+					{
+						XElement xTile = new XElement("tile");
+						xTile.SetAttributeValue("id", i.ToString());
+						tiles.Add(FirstGid + i, new TmxTilesetTile(
+							xTile,
+							Terrains,
+							tmxDir,
+							Image
+						));
+					}
+
+					Tiles = tiles;
+				}
+
                 Properties = new(xTileset.Element("properties"));
             }
         }

@@ -19,7 +19,8 @@ namespace TiledSharp
 		public double OffsetX { get; private set; }
 		public double OffsetY { get; private set; }
 		public TmxColor Tint { get; private set; }
-		public IReadOnlyCollection<TmxLayerTile> Tiles { get; private set; }
+		public IReadOnlyCollection<TmxLayerTile> Tiles => tiles;
+		private Collection<TmxLayerTile> tiles = new();
 		public PropertyDict Properties { get; private set; }
 		public TmxLayer(XElement xLayer, int width, int height)
 		{
@@ -34,6 +35,7 @@ namespace TiledSharp
 			var xData = xLayer.Element("data");
 			var encoding = (string)xData.Attribute("encoding");
 			IEnumerable<XElement> xChunks = xData.Elements("chunk").ToList();
+			tiles = new Collection<TmxLayerTile>();
 			if(xChunks.Any())
 			{
 				foreach(XElement xChunk in xChunks)
@@ -53,9 +55,6 @@ namespace TiledSharp
 		}
 	    private void ReadChunk(int width, int height, int startX, int startY, string encoding, XElement xData)
         {
-            var tiles = new Collection<TmxLayerTile>();
-            Tiles = tiles;
-            
             switch(encoding)
             {
                 case("base64"):
@@ -84,9 +83,12 @@ namespace TiledSharp
                     foreach(var cell in data)
                     {
                         var gid = uint.Parse(cell.Trim());
-                        var x   = k % width;
-                        var y   = k / width;
-                        tiles.Add(new(gid, x + startX, y + startY));
+						if(gid != 0)
+						{
+							var x = k % width;
+							var y = k / width;
+							tiles.Add(new(gid, x + startX, y + startY));
+						}
                         ++k;
                     }
 

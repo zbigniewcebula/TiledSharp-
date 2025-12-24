@@ -100,10 +100,11 @@ namespace TiledSharp
             Rotation = (double?)xObject.Attribute("rotation") ?? 0.0;
 
             // Assess object type and assign appropriate content
-            var xGid = xObject.Attribute("gid");
-            var xEllipse = xObject.Element("ellipse");
-            var xPolygon = xObject.Element("polygon");
-            var xPolyline = xObject.Element("polyline");
+            var xGid     = xObject.Attribute("gid");
+            var xEllipse  = xObject.Element("ellipse");
+            var xPolygon  = xObject.Element("polygon");
+			var xPolyline = xObject.Element("polyline");
+			var xPoint    = xObject.Element("point");
 
             if(xGid != null)
             {
@@ -123,12 +124,19 @@ namespace TiledSharp
                 Points = ParsePoints(xPolygon);
                 ObjectType = TmxObjectType.Polygon;
             }
-            else if(xPolyline != null)
-            {
-                Points = ParsePoints(xPolyline);
-                ObjectType = TmxObjectType.Polyline;
-            }
-            else ObjectType = TmxObjectType.Basic;
+			else if(xPolyline != null)
+			{
+				Points     = ParsePoints(xPolyline);
+				ObjectType = TmxObjectType.Polyline;
+			}
+			else if(xPoint != null)
+			{
+				ObjectType = TmxObjectType.Point;
+			}
+            else
+			{
+				ObjectType = TmxObjectType.Basic;
+			}
 
             var xText = xObject.Element("text");
             if(xText != null)
@@ -252,7 +260,8 @@ namespace TiledSharp
         Tile,
         Ellipse,
         Polygon,
-        Polyline
+        Polyline,
+		Point,
     }
 
     public enum DrawOrderType
